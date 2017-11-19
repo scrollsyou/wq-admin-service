@@ -1,0 +1,35 @@
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+
+
+# Eclipse
+.settings/
+*/.settings/
+# Intellij
+.idea/
+*.iws
+*.imi
+
+.gradle/
+# Mac
+.DS_Store
+
+# Maven
+*/build/
+*/log/
+*/target/
+/bin/
+/.classpath
+/.project
+*/bin/
+*/.classpath
+*/.project
+#/.gitignore
