@@ -17,7 +17,7 @@ public interface UserRepository extends Repository<User, Long> {
     
     List<User> findByOperTimeBetween(Date min,Date max);
     
-    Page<User> findByNameLike(String name,Pageable pageable);
+    Page<User> findByNameLikeOrderByOperTimeDesc(String name,Pageable pageable);
     
     User findOne(Long id);
     

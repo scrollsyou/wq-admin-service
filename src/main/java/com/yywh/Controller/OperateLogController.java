@@ -34,7 +34,7 @@ public class OperateLogController {
 	@ResponseBody
 	public Page<OperateLog> queryPage(@RequestParam(defaultValue="1",value="page")Integer page,
 			@RequestParam(defaultValue="10",value="pageSize")Integer size,
-			@RequestParam(defaultValue="",value="remark")String remark,
+			@RequestParam(defaultValue="",value="name")String remark,
 			@RequestParam(value="createTime",required=false)String[] createTime) throws ParseException{
 		PageRequest pageRequest = new PageRequest(--page, size);
 		Page<OperateLog> responsePage = operateLogService.queryPage(remark,createTime, pageRequest);

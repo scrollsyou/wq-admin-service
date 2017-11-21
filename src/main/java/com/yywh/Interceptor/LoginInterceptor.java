@@ -1,7 +1,5 @@
 package com.yywh.Interceptor;
 
-import java.util.Map;
-
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -9,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
@@ -27,16 +24,18 @@ import com.yywh.vo.ResponseStatus;
  */
 public class LoginInterceptor extends HandlerInterceptorAdapter {
 
+	private static Logger logs = LoggerFactory.getLogger(LoginInterceptor.class);
 	public LoginInterceptor(){}
 	public LoginInterceptor(UserService userService){
+		super();
 		this.userService = userService;
 	}
 	public LoginInterceptor(UserService userService,boolean debug){
+		super();
+		logs.info("拦截器初始化！。。。。。。。。。。。。。。。。。。。。。");
 		this.userService = userService;
 		this.debug = debug;
 	}
-	private static Logger logs = LoggerFactory.getLogger(LoginInterceptor.class);
-	
 	/**
 	 * 配置是否为debug模式
 	 */
@@ -62,15 +61,11 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	}
 
 	public boolean preHandle(HttpServletRequest request,
-			HttpServletResponse response, Object handler, Model model) throws Exception {
-		request.setAttribute("accessIp", this.getIP(request));
-		logs.info("preHandle = accessIp="+this.getIP(request));
-		logs.info(request.getHeader("X-Forwarded-For"));
+			HttpServletResponse response, Object handler) throws Exception {
 		if("OPTIONS".equalsIgnoreCase(request.getMethod())){//平台不处理OPTIONS请求
 			return true;
 		}
 		if(debug){
-			Map<String, String[]> requestMap = request.getParameterMap();
 			logs.info("请求类型为:"+request.getMethod());
 			logs.info("请求地址为:"+request.getRequestURI()
 					.toString());
@@ -101,6 +96,7 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 					}
 				}
 			}
+			logs.info("获取token="+token);
 			String stringer = "{\"status\":-1,\"message\":\"用户token为空!\"}";
 			if(token!=null && !"".equals(token)){
 				ResponseStatus<User>  userRS = userService.hasLogin(token);
@@ -111,8 +107,14 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 				logs.warn(userRS.getMessage()+"！");
 				stringer = "{\"status\":-1,\"message\":\""+userRS.getMessage()+"\"}";
 			}
-			response.setStatus(401);
-			
+
+			//注销cookies
+			if(cookies != null && cookies.length > 0) {
+				for(Cookie cookie : cookies) {
+					cookie.setMaxAge(0);
+					response.addCookie(cookie);
+				}
+			}
 			response.getOutputStream().write(stringer.toString().getBytes("UTF-8"));  
 		    response.setContentType("text/json; charset=UTF-8");
 		    response.setHeader("Access-Control-Allow-Origin", "*");
@@ -138,30 +140,5 @@ public class LoginInterceptor extends HandlerInterceptorAdapter {
 	}
 	public void setDebug(boolean debug) {
 		this.debug = debug;
-	}
-
-	/**
-	 * 获取客户端ip
-	 * @param request
-	 * @return
-	 */
-	private String getIP(HttpServletRequest request) {
-		String ip = request.getHeader("X-Real-IP");
-		if (!StringUtils.isEmpty(ip) && !"unknown".equalsIgnoreCase(ip)) {
-			return ip;
-		}
-		ip = request.getHeader("X-Forwarded-For");
-		logs.info("ip="+ip);
-		if (!StringUtils.isEmpty(ip) && !"unknown".equalsIgnoreCase(ip)) {
-			// 多次反向代理后会有多个IP值，第一个为真实IP。
-			int index = ip.indexOf(',');
-			if (index != -1) {
-				return ip.substring(0, index);
-			} else {
-				return ip;
-			}
-		} else {
-			return request.getRemoteAddr();
-		}
 	}
 }

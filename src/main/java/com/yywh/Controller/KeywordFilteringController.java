@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -40,7 +41,7 @@ public class KeywordFilteringController {
 	
 	@RequestMapping("/addKeyword")
 	@ResponseBody
-	public ResponseStatus<KeywordFiltering> addKeyword(KeywordFiltering entity, @CookieValue(value="accessToken") String token, HttpServletRequest request){
+	public ResponseStatus<KeywordFiltering> addKeyword(@RequestBody KeywordFiltering entity, @CookieValue(value="accessToken", required=false) String token, HttpServletRequest request){
 		ResponseStatus<KeywordFiltering> responseStatus = new ResponseStatus<KeywordFiltering>(0, "");
 		User operUser = userService.findByToken(token);
 		if(operUser != null) {
@@ -56,15 +57,22 @@ public class KeywordFilteringController {
 
 	@RequestMapping("/updKeyword")
 	@ResponseBody
-	public ResponseStatus<KeywordFiltering> updKeyword(KeywordFiltering entity, @CookieValue(value="accessToken") String token, HttpServletRequest request){
+	public ResponseStatus<KeywordFiltering> updKeyword(@RequestBody KeywordFiltering entity, @CookieValue(value="accessToken") String token, HttpServletRequest request){
 		ResponseStatus<KeywordFiltering> responseStatus = new ResponseStatus<KeywordFiltering>(0, "");
 		User operUser = userService.findByToken(token);
 		if(operUser != null) {
 			entity.setOperId(operUser.getId());
 			entity.setOperName(operUser.getName());
-			KeywordFiltering oldBean = keywordFilteringService.findOne(entity.getId());
-			responseStatus = keywordFilteringService.addKeyword(entity);
-			operateLogService.addLog(new OperateLog(IpUtil.getIP(request), operUser.getId(), operUser.getName(), "修改关键字“" + oldBean.getKeyword() + "”为“" + entity.getKeyword() + "”，结果："+responseStatus.getMessage()));
+			ResponseStatus<KeywordFiltering> tmpResponseStatus = keywordFilteringService.findOne(entity.getId());
+			if(tmpResponseStatus == null || tmpResponseStatus.getData() == null) {
+				responseStatus.setMessage("关键词不存在！");
+				return responseStatus;
+			}
+			KeywordFiltering tmpKeywordFiltering = tmpResponseStatus.getData();
+			String msg = "修改关键字“" + tmpKeywordFiltering.getKeyword() + "”为“" + entity.getKeyword();
+			tmpKeywordFiltering.setKeyword(entity.getKeyword());
+			responseStatus = keywordFilteringService.updKeyword(entity);
+			operateLogService.addLog(new OperateLog(IpUtil.getIP(request), operUser.getId(), operUser.getName(), msg + "”，结果："+responseStatus.getMessage()));
 		}else {
 			responseStatus.setMessage("用户token失效，请重新登录！");
 		}
@@ -95,10 +103,17 @@ public class KeywordFilteringController {
 	@ResponseBody
 	public Page<KeywordFiltering> queryPage(@RequestParam(defaultValue="1",value="page")Integer page,
 			@RequestParam(defaultValue="10",value="pageSize")Integer size,
-			@RequestParam(defaultValue="",value="keyword")String keyword,
+			@RequestParam(defaultValue="",value="name")String keyword,
 			@RequestParam(value="createTime",required=false)String[] createTime) throws ParseException{
 		PageRequest pageRequest = new PageRequest(--page, size);
 		Page<KeywordFiltering> responsePage = keywordFilteringService.queryPage(keyword,createTime, pageRequest);
 		return responsePage;
 	};
+	
+	@RequestMapping("/queryOne/{id}")
+	@ResponseBody
+	public ResponseStatus<KeywordFiltering> queryOne(@PathVariable("id") Long id){
+    	return keywordFilteringService.findOne(id);
+	}
+
 }

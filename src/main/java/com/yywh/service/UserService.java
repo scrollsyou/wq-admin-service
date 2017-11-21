@@ -29,7 +29,7 @@ public class UserService {
 		entity.setId(null);
 		entity.setOperTime(new Date());
 		//md5加密
-		CodeUtil.enCodeMd5_UTF8(entity.getPassword());
+//		entity.setPassword(CodeUtil.enCodeMd5_UTF8(entity.getPassword()));
     	//判断帐号是否存在
 		Integer existsCount = userRepository.countByAccount(entity.getAccount());
 		logs.info("判断帐号是否存在:account={},count={}", entity.getAccount(), existsCount);
@@ -67,6 +67,7 @@ public class UserService {
 			bean.setName(entity.getName());
 			bean.setAccount(entity.getAccount());
 			bean.setPhone(entity.getPhone());
+			bean.setPassword(entity.getPassword());
 			Integer existsCount = userRepository.countByAccountAndIdNot(bean.getAccount(), bean.getId());
 			logs.info("判断帐号是否存在:account={},count={}", entity.getAccount(), existsCount);
 			if(existsCount != null && existsCount > 0) {
@@ -100,7 +101,7 @@ public class UserService {
 //		if(list != null) {
 //			logs.info("list size={}", list.size());
 //		}
-		return userRepository.findByNameLike("%"+name+"%", pageRequest);
+		return userRepository.findByNameLikeOrderByOperTimeDesc("%"+name+"%", pageRequest);
 	}
     
     public ResponseStatus<User> findOne(Long id){

@@ -43,6 +43,6 @@ public class OperateLogService {
 			endDate = DateUtil.stringToDate(createTime[0]);
 			logs.info("begindate={},endDate={}",createTime[0],createTime[1]);
 		}
-		return operateLogRepository.findByRemarkLike("%"+remark+"%", pageRequest);
+		return operateLogRepository.findByRemarkLikeOrderByOperTimeDesc("%"+remark+"%", pageRequest);
 	}
 }

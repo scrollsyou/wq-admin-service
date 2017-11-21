@@ -10,6 +10,6 @@ public interface OperateLogRepository extends Repository<OperateLog, Long> {
 
 	OperateLog save(OperateLog entity); 
     
-    Page<OperateLog> findByRemarkLike(String remark, Pageable pageable);
+    Page<OperateLog> findByRemarkLikeOrderByOperTimeDesc(String remark, Pageable pageable);
     
 }

@@ -1,7 +1,12 @@
 package com.yywh.service;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +15,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.yywh.domain.bean.AccessLog;
+import com.yywh.domain.bean.AccessLogVo;
 import com.yywh.domain.dao.AccessLogRepository;
 import com.yywh.util.DateUtil;
 import com.yywh.vo.ResponseStatus;
@@ -49,6 +59,31 @@ public class AccessLogService {
 //		if(list != null) {
 //			logs.info("list size={}", list.size());
 //		}
-		return accessLogRepository.findByTitleLike("%"+title+"%", pageRequest);
+		return accessLogRepository.findByTitleLikeOrderByOperTimeDesc("%"+title+"%", pageRequest);
+	}
+
+	public List<LinkedHashMap<String, Integer>> statisticsDailyVisits() {
+		List<LinkedHashMap<String, Integer>> listMap = new ArrayList<LinkedHashMap<String, Integer>>();
+		for(int i=0;i<30;i++) {
+			LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+			map.put("name", (i+1));
+			map.put("日访问量", 0);
+			listMap.add(map);
+		}
+		List<Object[]> resultList = accessLogRepository.statisticsDailyVisits();
+		if(resultList != null && resultList.size() > 0) {
+			for(Object[] result : resultList) {
+				LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
+				Integer dayNum = Integer.valueOf(result[0].toString());
+				map.put("name", dayNum);
+				map.put("日访问量", Integer.valueOf(result[1].toString()));
+				listMap.add(dayNum-1, map);
+			}
+		}
+		Gson gson = new Gson();
+		gson.toJson(listMap);
+		JsonObject jsonObject = new JsonObject();
+		jsonObject.addProperty("sales", gson.toString());
+		return listMap;
 	}
 }

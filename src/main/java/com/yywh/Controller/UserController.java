@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -46,7 +47,7 @@ public class UserController {
 	
 	@RequestMapping("/addUser")
 	@ResponseBody
-	public ResponseStatus<User> addUser(User entity, @CookieValue(value="accessToken") String token, HttpServletRequest request){
+	public ResponseStatus<User> addUser(@RequestBody User entity, @CookieValue(value="accessToken") String token, HttpServletRequest request){
 		ResponseStatus<User> responseStatus = new ResponseStatus<User>(0, "");
 		User operUser = userService.findByToken(token);
 		if(operUser != null) {
@@ -62,7 +63,7 @@ public class UserController {
 	
 	@RequestMapping("/updUser")
 	@ResponseBody
-	public ResponseStatus<User> updUser(User entity, @CookieValue(value="accessToken") String token, HttpServletRequest request){
+	public ResponseStatus<User> updUser(@RequestBody User entity, @CookieValue(value="accessToken") String token, HttpServletRequest request){
 		ResponseStatus<User> responseStatus = new ResponseStatus<User>(0, "");
 		User operUser = userService.findByToken(token);
 		if(operUser != null) {
@@ -129,7 +130,7 @@ public class UserController {
 	@NotLogin
 	@RequestMapping("/login")
 	@ResponseBody
-	public ResponseStatus<User> login(String account, String password, HttpServletResponse response, HttpServletRequest request){
+	public ResponseStatus<User> login(@RequestParam(defaultValue="",value="account")String account, @RequestParam(defaultValue="",value="password")String password, HttpServletResponse response, HttpServletRequest request){
 		ResponseStatus<User> responseStatus = new ResponseStatus<User>(0, "用户登录失败！");
 		response.setStatus(400);
 		if(account == null || "".equals(account.trim()) || password == null || "".equals(password.trim()) ) {
@@ -141,9 +142,9 @@ public class UserController {
 			responseStatus.setMessage("该用户帐号不存在！");
 			return responseStatus;
 		}
-		String passwordMd5 = CodeUtil.enCodeMd5_UTF8(password);
-		logs.info("login user account={},password={},passwordMd5={},queryUserPassword={}",account,password,passwordMd5,userBean.getPassword());
-		if(!userBean.getPassword().equals(passwordMd5)) {
+//		String passwordMd5 = CodeUtil.enCodeMd5_UTF8(password);
+		logs.info("login user account={},password={},queryUserPassword={}",account,password,userBean.getPassword());
+		if(!userBean.getPassword().equals(password)) {
 			responseStatus.setMessage("用户密码不正确！");
 			return responseStatus;
 		}
@@ -156,6 +157,7 @@ public class UserController {
 			Cookie cookie = new Cookie("accessToken", accessToken);
 			cookie.setHttpOnly(true);
 			cookie.setMaxAge(900000);
+			cookie.setPath("/");
 			response.addCookie(cookie);
 			//set cookie token
 			String token = "{\"id\":" + userBean.getId() + ",\"deadline\":" + (System.currentTimeMillis()+(1000*60*60)) + "}";
@@ -167,6 +169,7 @@ public class UserController {
 			cookie = new Cookie("token", token);
 			cookie.setHttpOnly(true);
 			cookie.setMaxAge(900000);
+			cookie.setPath("/");
 			response.addCookie(cookie);
 			
 			//set responseStatus
@@ -183,7 +186,7 @@ public class UserController {
 	@NotLogin
 	@RequestMapping("/logout")
 	@ResponseBody
-	public ResponseStatus<User> loginOut(@CookieValue(value="accessToken") String token, HttpServletRequest request) {
+	public ResponseStatus<User> loginOut(@CookieValue(value="accessToken") String token, HttpServletRequest request, HttpServletResponse response) {
 		ResponseStatus<User> responseStatus = new ResponseStatus<User>(1, "退出登录成功！");
 		User operUser = userService.findByToken(token);
 		if(operUser != null) {
@@ -197,8 +200,12 @@ public class UserController {
 		}
 		//注销cookies
 		Cookie[] cookies = request.getCookies();
-		for(Cookie cookie : cookies) {
-			cookie.setMaxAge(0);
+		if(cookies != null && cookies.length > 0) {
+			for(Cookie cookie : cookies) {
+				cookie.setMaxAge(0);
+				response.addCookie(cookie);
+				
+			}
 		}
 		return responseStatus;
 	}

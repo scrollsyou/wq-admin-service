@@ -58,13 +58,9 @@ public class KeywordFilteringService {
 			endDate = DateUtil.stringToDate(createTime[0]);
 			logs.info("begindate={},endDate={}",createTime[0],createTime[1]);
 		}
-		return keywordFilteringRepository.findByKeywordLike("%"+keyword+"%", pageRequest);
+		return keywordFilteringRepository.findByKeywordLikeOrderByOperTimeDesc("%"+keyword+"%", pageRequest);
 	}
     
-    public KeywordFiltering findOne(Long id) {
-    	return keywordFilteringRepository.findOne(id);
-    }
-
     /**
      * 删除用户
      * @param entity
@@ -79,5 +75,12 @@ public class KeywordFilteringService {
     		return new ResponseStatus<KeywordFiltering>(1, "删除关键字成功！", entity);
 		}
     }
-	
+
+    public ResponseStatus<KeywordFiltering> findOne(Long id){
+    	ResponseStatus<KeywordFiltering> responseStatus = new ResponseStatus<KeywordFiltering>();
+    	responseStatus.setStatus(1);
+    	responseStatus.setData(keywordFilteringRepository.findOne(id));
+    	return responseStatus;
+    }
+
 }

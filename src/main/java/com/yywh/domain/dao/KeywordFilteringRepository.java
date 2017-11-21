@@ -10,7 +10,7 @@ public interface KeywordFilteringRepository extends Repository<KeywordFiltering,
 
 	KeywordFiltering save(KeywordFiltering entity); 
     
-    Page<KeywordFiltering> findByKeywordLike(String keyword, Pageable pageable);
+    Page<KeywordFiltering> findByKeywordLikeOrderByOperTimeDesc(String keyword, Pageable pageable);
 
     KeywordFiltering findOne(Long id);
     
