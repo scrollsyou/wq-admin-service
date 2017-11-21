@@ -74,9 +74,9 @@ public class AccessLogService {
 		if(resultList != null && resultList.size() > 0) {
 			for(Object[] result : resultList) {
 				LinkedHashMap<String, Integer> map = new LinkedHashMap<String, Integer>();
-				Integer dayNum = Integer.valueOf(result[0].toString());
+				Integer dayNum = Integer.valueOf(result[1].toString());
 				map.put("name", dayNum);
-				map.put("日访问量", Integer.valueOf(result[1].toString()));
+				map.put("日访问量", Integer.valueOf(result[0].toString()));
 				listMap.add(dayNum-1, map);
 			}
 		}

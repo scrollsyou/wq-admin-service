@@ -3,6 +3,7 @@ package com.yywh.Controller;
 import java.text.ParseException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,12 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import com.mysql.fabric.Response;
 import com.yywh.annotation.NotLogin;
 import com.yywh.domain.bean.AccessLog;
 import com.yywh.service.AccessLogService;
@@ -37,7 +36,6 @@ public class AccessLogController {
 	public ResponseStatus<AccessLog> addLog(AccessLog entity, HttpServletRequest request){
 		String ip = IpUtil.getIP(request);
 		entity.setIp(ip);
-	logs.info(entity.getTitle());
 		return accessLogService.addLog(entity);
 	};
 
