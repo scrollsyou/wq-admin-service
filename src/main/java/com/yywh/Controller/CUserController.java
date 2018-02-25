@@ -42,11 +42,6 @@ public class CUserController {
 			//保存token
 			cUser.setToken(accessToken);
 			cUserRepository.save(cUser);
-			Cookie cookie = new Cookie("accessToken", accessToken);
-			cookie.setHttpOnly(true);
-			cookie.setMaxAge(900000);
-			cookie.setPath("/");
-			response.addCookie(cookie);
 		}else if(!StringUtils.isEmpty(name)) {
 			cUser = new CUser();
 			responseStatus.setStatus(1);
@@ -58,19 +53,14 @@ public class CUserController {
 			//保存token
 			cUser.setToken(accessToken);
 			cUserRepository.save(cUser);
-			Cookie cookie = new Cookie("accessToken", accessToken);
-			cookie.setHttpOnly(true);
-			cookie.setMaxAge(900000);
-			cookie.setPath("/");
-			response.addCookie(cookie);
 		}
 		return responseStatus;
 	}
 
 	@NotLogin
-	@RequestMapping("/isLogout")
+	@RequestMapping("/isLogin")
 	@ResponseBody
-	public ResponseStatus<CUser> isLogin(@CookieValue(value="accessToken") String token, HttpServletRequest request, HttpServletResponse response) {
+	public ResponseStatus<CUser> isLogin(@RequestParam(value="token") String token, HttpServletRequest request, HttpServletResponse response) {
 		ResponseStatus<CUser> responseStatus = new ResponseStatus<CUser>(0, "未登录成功！");
 		CUser operUser = cUserRepository.findByToken(token);
 		if(operUser != null) {
